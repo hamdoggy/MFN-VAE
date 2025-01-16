@@ -53,12 +53,6 @@ This project aims to classify data using a multimodal deep learning model. The p
 - Imbalanced-learn >= 0.8
 - Matplotlib (optional, for visualization)
 
-### Installation
-```bash
-pip install -r requirements.txt
-```
-
----
 
 ## Data Format
 
@@ -69,12 +63,7 @@ pip install -r requirements.txt
    - **Contents**:
      - `label`: Classification label, with values `0` or `1`.
      - Remaining columns are feature data with custom column names.
-   - **Example**:
-     ```csv
-     label,feature1,feature2,feature3,...
-     0,0.12,0.34,0.56,...
-     1,0.23,0.45,0.67,...
-     ```
+
 
 2. **Multi-Modal Input Files**:
    - **File Format**: CSV
