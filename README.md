@@ -1,6 +1,7 @@
 # MFN-VAE
 MFN-VAE
 
+
 # Project Name
 Multimodal Deep Learning Classification Model
 
@@ -63,7 +64,12 @@ This project aims to classify data using a multimodal deep learning model. The p
    - **Contents**:
      - `label`: Classification label, with values `0` or `1`.
      - Remaining columns are feature data with custom column names.
-
+   - **Example**:
+     ```csv
+     label,feature1,feature2,feature3,...
+     0,0.12,0.34,0.56,...
+     1,0.23,0.45,0.67,...
+     ```
 
 2. **Multi-Modal Input Files**:
    - **File Format**: CSV
@@ -182,17 +188,4 @@ accuracy, auc = evaluate_model(model, val_loader)
 
 ---
 
-## Notes
-1. Ensure input data format matches the requirements, especially for cross-validation paths.
-2. Training time depends on the dataset size and number of hyperparameter trials.
-3. Pretrained model paths need to be specified in advance.
 
----
-
-## Contribution
-For questions or suggestions, please contact the project maintainers.
-
----
-
-## License
-MIT License
