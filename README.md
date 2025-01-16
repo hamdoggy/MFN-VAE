@@ -36,6 +36,7 @@ This project aims to classify data using a multimodal deep learning model. The p
 
 4. `train`
    - Model training and optimization module, including weight training and hyperparameter optimization.
+   - If you need efficient management and reusable code, it is recommended to use train_optuna.py. If you need to quickly implement functionality, train_optuna_fast.py might be more suitable.
    - Key Files:
      - `train_optuna.py`
      - `train_optuna_fast.py`
