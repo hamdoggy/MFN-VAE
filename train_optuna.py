@@ -25,7 +25,7 @@ def get_args_parser(batch_size=8, lr=0.01):
     train_path = "crossVal_" + crossVal + "_train.csv"
     val_path = "crossVal_" + crossVal + "_val.csv"
 
-    # 数据集所在根目录
+    # Root directory of the dataset
     parser.add_argument('--train_data_path1', type=str,
                         default=os.path.join(path1, train_path))
     parser.add_argument('--train_data_path2', type=str,
@@ -39,11 +39,11 @@ def get_args_parser(batch_size=8, lr=0.01):
                         default=os.path.join(path2, val_path))
     parser.add_argument('--val_data_path3', type=str,
                         default=os.path.join(path3, val_path))
-    # 保存权重
+    # Save path for model weights
     parser.add_argument('--save_path', type=str,
                         default=r'result/0')
 
-    # 权重路径
+    # Path to pre-trained weights
     parser.add_argument('--weights', type=str,
                         default=r'result/multi_model/3model_2_crossVal_' + crossVal + '' + '.pth')
 
@@ -51,6 +51,7 @@ def get_args_parser(batch_size=8, lr=0.01):
 
 
 def load_data(args):
+    # Load train and validation datasets
     train_data, val_data = prepare_data_multi_modl(args.train_data_path1,
                                                    args.train_data_path2,
                                                    args.train_data_path3,
@@ -70,6 +71,7 @@ def training(args, loss_weight, trail, train_data_loader, val_data_loader):
 
     model = MLP(1521)
     if args.weights != "":
+        # Load pre-trained weights if specified
         assert os.path.exists(args.weights), "weights file: '{}' not exist.".format(args.weights)
         weights_dict = torch.load(args.weights)
         model.load_state_dict(weights_dict, strict=False)
@@ -79,11 +81,13 @@ def training(args, loss_weight, trail, train_data_loader, val_data_loader):
     best_acc, val_acc, the_auc = 0.0, 0.0, 0.0
     # best_epoch = 0
     for epoch in range(args.epochs):
+        # Train for one epoch
         train_one_epoch(model=model,
                         train_dl=train_data_loader,
                         optimizer=optimizer,
                         the_weight=loss_weight)
 
+        # Evaluate on validation set
         val_acc, val_auc = evaluate_model(model=model,
                                           val_dl=val_data_loader)
         if val_acc >= best_acc:
@@ -91,6 +95,7 @@ def training(args, loss_weight, trail, train_data_loader, val_data_loader):
             # best_epoch = epoch
             the_auc = val_auc
 
+            # Save model weights
             torch.save(model.state_dict(), save_path)
 
         trail.report(val_auc, epoch)
@@ -108,6 +113,7 @@ def objective(trail):
     loss_weight_3 = trail.suggest_float('loss_weight_3', 0.1, 1, step=0.1)
     loss_weight = [loss_weight_0, loss_weight_1, loss_weight_2, loss_weight_3]
 
+    # Start training with suggested hyperparameters
     acc, auc = training(args=get_args_parser(lr=lr),
                         loss_weight=loss_weight,
                         train_data_loader=train_loader,
