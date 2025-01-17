@@ -10,7 +10,7 @@ from sklearn import metrics
 
 
 def loss_fn(y, x, mu, log_var):
-    recons_loss = F.mse_loss(y, x)  # 均方损失
+    recons_loss = F.mse_loss(y, x)  
     kld_loss = torch.mean(0.5 * torch.sum(mu ** 2 + torch.exp(log_var) - log_var - 1, 1), 0)
     return recons_loss + 0.5 * kld_loss
 
