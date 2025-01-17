@@ -24,7 +24,7 @@ def get_args_parser(batch_size, lr):
     train_path = "crossVal_" + crossVal + "_train.csv"
     val_path = "crossVal_" + crossVal + "_val.csv"
 
-    # 数据集所在根目录
+    # Root directory of the dataset
     parser.add_argument('--train_data_path1', type=str,
                         default=os.path.join(path1, train_path))
     parser.add_argument('--train_data_path2', type=str,
@@ -38,11 +38,11 @@ def get_args_parser(batch_size, lr):
                         default=os.path.join(path2, val_path))
     parser.add_argument('--val_data_path3', type=str,
                         default=os.path.join(path3, val_path))
-    # 保存权重
+    # Path to save model weights
     parser.add_argument('--save_path', type=str,
                         default=r'result/0')
 
-    # 权重路径
+    # Path to pre-trained model weights
     parser.add_argument('--weights', type=str,
                         default=r'result/multi_model/3model_2_crossVal_' + crossVal + '' + '.pth')
 
@@ -55,6 +55,7 @@ def training(args, loss_weight, trail):
                              'LossWeight[{:.2f},{:.2f},{:.2f},{:.2f}]'
                              .format(loss_weight[0], loss_weight[1], loss_weight[2], loss_weight[3]) + '.pth')
 
+    # Load the training and validation datasets
     train_loader, val_loader = prepare_data_multi_modl(args.train_data_path1,
                                                        args.train_data_path2,
                                                        args.train_data_path3,
@@ -65,6 +66,7 @@ def training(args, loss_weight, trail):
 
     model = MLP(1521)
     if args.weights != "":
+        # Load pre-trained model weights if provided
         assert os.path.exists(args.weights), "weights file: '{}' not exist.".format(args.weights)
         weights_dict = torch.load(args.weights)
         model.load_state_dict(weights_dict, strict=False)
@@ -74,19 +76,20 @@ def training(args, loss_weight, trail):
     best_acc, val_acc, the_auc = 0.0, 0.0, 0.0
     best_epoch = 0
     for epoch in range(args.epochs):
+        # Train the model for one epoch
         train_one_epoch(model=model,
                         train_dl=train_loader,
                         optimizer=optimizer,
                         the_weight=loss_weight)
 
+        # Evaluate the model on the validation dataset
         val_acc, val_auc = evaluate_model(model=model,
                                           val_dl=val_loader)
         if val_acc >= best_acc:
             best_acc = val_acc
             best_epoch = epoch
             the_auc = val_auc
-            # save_path = os.path.join(args.save_path,
-            #                          str(number_pth) + '-' + 'acc_' + '{:0.3f}'.format(best_acc) + '.pth')
+            # Save the model with the best validation accuracy
             torch.save(model.state_dict(), save_path)
 
         trail.report(val_auc, epoch)
@@ -106,6 +109,7 @@ def objective(trail):
     loss_weight_3 = trail.suggest_float('loss_weight_3', 0.1, 1, step=0.1)
     loss_weight = [loss_weight_0, loss_weight_1, loss_weight_2, loss_weight_3]
 
+    # Start training with the suggested hyperparameters
     acc, auc = training(get_args_parser(batch_size, lr), loss_weight, trail)
     return auc
 
@@ -113,15 +117,19 @@ def objective(trail):
 if __name__ == '__main__':
     st = time.time()
 
+    # Create an Optuna study to optimize the loss weights
     study = optuna.create_study(study_name='loss_weight', direction='maximize')
     study.optimize(objective, n_trials=50)
 
+    # Print the best hyperparameters and trial information
     print(study.best_params)
     print(study.best_trial)
     print(study.best_trial.value)
 
     print('Time: {:.2f} min'.format((time.time() - st) / 60))
 
+    # Visualize the optimization results
     optuna.visualization.plot_param_importances(study).show()
     optuna.visualization.plot_optimization_history(study).show()
     optuna.visualization.plot_slice(study).show()
+
