@@ -21,7 +21,7 @@ def get_args_parser(crossVal):
     train_path = "crossVal_" + str(crossVal) + "_train.csv"
     val_path = "crossVal_" + str(crossVal) + "_val.csv"
 
-    # 数据集所在根目录
+    # Root directory of the dataset
     parser.add_argument('--train_data_path1', type=str,
                         default=os.path.join(path1, train_path))
     parser.add_argument('--train_data_path2', type=str,
@@ -35,11 +35,11 @@ def get_args_parser(crossVal):
                         default=os.path.join(path2, val_path))
     parser.add_argument('--val_data_path3', type=str,
                         default=os.path.join(path3, val_path))
-    # 保存权重
+    # Path to save model weights
     parser.add_argument('--save_path', type=str,
                         default=r'result/0.pth')
 
-    # 权重路径
+    # Path to pre-trained model weights
     parser.add_argument('--weights', type=str,
                         default=r'result/multi_model/3model_2_crossVal_' + str(crossVal) + '' + '.pth')
 
@@ -47,6 +47,7 @@ def get_args_parser(crossVal):
 
 
 def tain_one_model(args, the_weight):
+    # Prepare data for training and validation
     train_loader, val_loader = prepare_data_multi_modl(args.train_data_path1,
                                                        args.train_data_path2,
                                                        args.train_data_path3,
@@ -56,7 +57,7 @@ def tain_one_model(args, the_weight):
                                                        batch_size=args.batch_size)
 
     model = MLP(1521)
-    if args.weights != "":  # 加载预训练模型
+    if args.weights != "":  # Load pre-trained model if provided
         assert os.path.exists(args.weights), "weights file: '{}' not exist.".format(args.weights)
         weights_dict = torch.load(args.weights)
         print(model.load_state_dict(weights_dict, strict=False))
@@ -66,15 +67,17 @@ def tain_one_model(args, the_weight):
     best_acc, val_acc, the_auc = 0.0, 0.0, 0.0
     best_epoch = 0
     for epoch in range(args.epochs):
-        # enumerate mini batches
+        # Enumerate mini-batches for training
         train_one_epoch(model=model,
                         train_dl=train_loader,
                         optimizer=optimizer,
                         the_weight=the_weight)
 
+        # Evaluate the model on validation data
         val_acc, roc_auc = evaluate_model(model=model,
                                           val_dl=val_loader)
 
+        # Save the best model based on validation accuracy
         if val_acc >= best_acc:
             best_acc = val_acc
             best_epoch = epoch
@@ -89,12 +92,14 @@ if __name__ == '__main__':
 
     all_result = []
 
+    # Loop over different combinations of loss weights
     for a1 in weight:
         for a2 in weight:
             for a3 in weight:
                 for a in weight:
                     acc_sum = 0
                     auc_sum = 0
+                    # Run the training process for 5 folds
                     for i in range(5):
                         opt = get_args_parser(i)
 
@@ -102,8 +107,11 @@ if __name__ == '__main__':
                         acc_sum = acc_sum + acc
                         auc_sum = auc_sum + auc
 
+                    # Store the average accuracy and AUC for the current set of weights
                     result = [a1, a2, a3, a, acc_sum/5, auc_sum/5]
                     print(result)
                     all_result.append(result)
 
+    # Save the results to a CSV file
     pd.DataFrame(all_result).to_csv("all_result.csv")
+
